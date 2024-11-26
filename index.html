@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iLearnAI Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+        #response {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            min-height: 100px;
+            margin-top: 20px;
+        }
+        #question {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        #submit-btn {
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #submit-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lian Chatbot</h1>
+    <p>Ask a question based on the course content provided:</p>
+    
+    <form id="chat-form">
+        <label for="question">Enter your question:</label>
+        <textarea id="question" rows="4" required></textarea>
+        <button type="submit" id="submit-btn">Submit</button>
+    </form>
+
+    <div id="response">
+        <h3>Response:</h3>
+        <p id="response-text">Waiting for your question...</p>
+    </div>
+
+    <script>
+        const form = document.getElementById('chat-form');
+        const responseText = document.getElementById('response-text');
+
+        // Function to format the response text
+        function formatResponse(text) {
+            // Replace **bold** with <strong>bold</strong>
+            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // Replace \n with <br> for new lines
+            formattedText = formattedText.replace(/\n/g, '<br>');
+
+            // Replace numbered lists with <ol><li>...</li></ol>
+            formattedText = formattedText.replace(/(\d+)\.\s/g, '<li>$1</li>');
+
+            // Add <ol> tags around numbered lists
+            if (formattedText.includes('<li>')) {
+                formattedText = '<ol>' + formattedText + '</ol>';
+            }
+
+            return formattedText;
+        }
+
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const question = document.getElementById('question').value;
+
+            if (question.trim() === "") {
+                alert("Please enter a question");
+                return;
+            }
+
+            responseText.innerHTML = "Processing...";
+
+            // Send the question to the API
+            const formData = new FormData();
+            formData.append('query', question);
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/chatbot/ask-question', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.status) {
+                    // Format the response before displaying
+                    const formattedResponse = formatResponse(result.data.response);
+                    responseText.innerHTML = formattedResponse;
+                } else {
+                    responseText.innerHTML = "Error: " + result.message;
+                }
+            } catch (error) {
+                responseText.innerHTML = "Error connecting to the server.";
+            }
+        });
+    </script>
+</body>
+</html>
