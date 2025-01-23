@@ -3,11 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import chatbot
 import os
 from dotenv import load_dotenv
+from prometheus_client import make_asgi_app  # Prometheus integration
 
 # Load environment variables
 load_dotenv()
 
 app = FastAPI()
+
+# Add Prometheus metrics endpoint
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
 
 # Enable CORS
 app.add_middleware(
